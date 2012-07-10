@@ -4,11 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 
 import Klassen.Datenbank;
 
@@ -27,10 +30,15 @@ public class MainFrame extends JFrame {
 	//Eingabe
 	JLabel lblkmStart = new JLabel("KM Start: ");
 	JLabel lblkmEnde = new JLabel("KM Ende: ");
-	JLabel lblStart = new JLabel("Start: ");
-	JLabel lblEnde = new JLabel("Ende: ");
+	JLabel lblStart = new JLabel("Startort: ");
+	JLabel lblEnde = new JLabel("Endort: ");
 	JRadioButton rbPrivat = new JRadioButton("privat");
 	JRadioButton rbBeruf = new JRadioButton("geschäftlich");
+	JTextField txtkmStart = new JTextField(10);
+	JTextField txtkmEnde = new JTextField(20);
+	JTextField txtStart = new JTextField(20);
+	JTextField txtEnde = new JTextField(20);
+	JButton btnOK = new JButton("Speichern");
 	
 	/**
 	 * @param args
@@ -61,7 +69,21 @@ public class MainFrame extends JFrame {
 		
 		//Panel Eingabe
 		panelEingabe.setLayout(new GridLayout(0,2));
+		panelEingabe.add(lblkmStart);
+		panelEingabe.add(txtkmStart);
+		panelEingabe.add(lblkmEnde);
+		panelEingabe.add(txtkmEnde);
+		panelEingabe.add(lblStart);
+		panelEingabe.add(txtStart);
+		panelEingabe.add(lblEnde);
+		panelEingabe.add(txtEnde);
+		panelEingabe.add(rbPrivat);
+		panelEingabe.add(rbBeruf);
 		
+		panelEingabe.add(Box.createVerticalGlue());
+		panelEingabe.add(btnOK);
+		panelEingabe.add(Box.createVerticalGlue());
+		panelEingabe.add(Box.createVerticalGlue());
 		
 		//TabbedPane
 		tb.addTab("Willkommen", panelWillkommen);
@@ -72,7 +94,6 @@ public class MainFrame extends JFrame {
 		//ContentPane
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.CENTER, tb);
-		
 		
 	}
 
