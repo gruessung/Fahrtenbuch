@@ -1,10 +1,13 @@
 package GUI;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 
 import Klassen.Datenbank;
@@ -21,6 +24,14 @@ public class MainFrame extends JFrame {
 	
 	JLabel lblWillkommen = new JLabel();
 	
+	//Eingabe
+	JLabel lblkmStart = new JLabel("KM Start: ");
+	JLabel lblkmEnde = new JLabel("KM Ende: ");
+	JLabel lblStart = new JLabel("Start: ");
+	JLabel lblEnde = new JLabel("Ende: ");
+	JRadioButton rbPrivat = new JRadioButton("privat");
+	JRadioButton rbBeruf = new JRadioButton("geschäftlich");
+	
 	/**
 	 * @param args
 	 */
@@ -28,13 +39,13 @@ public class MainFrame extends JFrame {
 	{
 		
 		setVisible(true);
-		
+		setTitle("Fahrtenbuch");
 		createWidgets();
 		addWidgets();
-		
+		setPreferredSize(new Dimension(600,400));
 		pack();
 		
-		setMinimumSize(getPreferredSize());
+		
 	}
 
 	private void createWidgets() {
@@ -47,6 +58,10 @@ public class MainFrame extends JFrame {
 		//Panel Willkommen
 		panelWillkommen.setLayout(new BorderLayout());
 		panelWillkommen.add(BorderLayout.PAGE_START, lblWillkommen);
+		
+		//Panel Eingabe
+		panelEingabe.setLayout(new GridLayout(0,2));
+		
 		
 		//TabbedPane
 		tb.addTab("Willkommen", panelWillkommen);
