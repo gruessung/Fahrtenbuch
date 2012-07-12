@@ -19,6 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import Klassen.Datenbank;
 
@@ -31,37 +33,37 @@ public class MainFrame extends JFrame {
 
 	public Datenbank db = new Datenbank("fahrtenbuch.db", "", "");
 	
-	JTabbedPane tb = new JTabbedPane();
-	JPanel panelWillkommen = new JPanel();
-	JPanel panelEingabe = new JPanel();
-	JPanel panelFahrer = new JPanel();
-	JPanel panelAusgabe = new JPanel();
+	public JTabbedPane tb = new JTabbedPane();
+	public JPanel panelWillkommen = new JPanel();
+	public JPanel panelEingabe = new JPanel();
+	public JPanel panelFahrer = new JPanel();
+	public JPanel panelAusgabe = new JPanel();
 	
-	JLabel lblWillkommen = new JLabel();
+	public JLabel lblWillkommen = new JLabel();
 	
-	Boolean privat = false;
+	public Boolean privat = false;
 	
 	//Eingabe
-	JLabel lblkmStart = new JLabel("KM Start: ");
-	JLabel lblkmEnde = new JLabel("KM Ende: ");
-	JLabel lblStart = new JLabel("Startort: ");
-	JLabel lblEnde = new JLabel("Endort: ");
-	JRadioButton rbPrivat = new JRadioButton("privat");
-	JRadioButton rbBeruf = new JRadioButton("geschäftlich");
-	JTextField txtkmStart = new JTextField(10);
-	JTextField txtkmEnde = new JTextField(20);
-	JTextField txtStart = new JTextField(20);
-	JTextField txtEnde = new JTextField(20);
-	JButton btnOK = new JButton("Speichern");
-	JComboBox<String> fahrer = new JComboBox<String>();
-	JLabel lbluhrzeit1 = new JLabel("Startzeit:");
-	JLabel lbluhrzeit2 = new JLabel("Endzeit:");
-	JLabel lblmonat = new JLabel("Monat:");
-	JLabel lblfahrer = new JLabel("Fahrer:");
-	JComboBox<String> monat = new JComboBox<String>();
-	Vector<String> monate = new Vector<String>();
-	JTextField u1 = new JTextField();
-	JTextField u2 = new JTextField();
+	public JLabel lblkmStart = new JLabel("KM Start: ");
+	public JLabel lblkmEnde = new JLabel("KM Ende: ");
+	public JLabel lblStart = new JLabel("Startort: ");
+	public JLabel lblEnde = new JLabel("Endort: ");
+	public JRadioButton rbPrivat = new JRadioButton("privat");
+	public JRadioButton rbBeruf = new JRadioButton("geschäftlich");
+	public JTextField txtkmStart = new JTextField(10);
+	public JTextField txtkmEnde = new JTextField(20);
+	public JTextField txtStart = new JTextField(20);
+	public JTextField txtEnde = new JTextField(20);
+	public JButton btnOK = new JButton("Speichern");
+	public JComboBox<String> fahrer = new JComboBox<String>();
+	public JLabel lbluhrzeit1 = new JLabel("Startzeit / Datum:");
+	public JLabel lbluhrzeit2 = new JLabel("Endzeit / Datum:");
+	public JLabel lblmonat = new JLabel("Monat:");
+	public JLabel lblfahrer = new JLabel("Fahrer:");
+	public JComboBox<String> monat = new JComboBox<String>();
+	public Vector<String> monate = new Vector<String>();
+	public JTextField u1 = new JTextField();
+	public JTextField u2 = new JTextField();
 	
 	/**
 	 * @param args
@@ -133,6 +135,40 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		rbPrivat.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (rbPrivat.isSelected())
+				{
+					rbBeruf.setSelected(false);
+					txtStart.setEnabled(false);
+					txtEnde.setEnabled(false);
+					u1.setEnabled(false);
+					u2.setEnabled(false);
+					fahrer.setEnabled(false);
+					monat.setEnabled(false);
+				}
+			}
+		});
+		
+		rbBeruf.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if (rbBeruf.isSelected())
+				{
+					rbPrivat.setSelected(false);
+					txtStart.setEnabled(true);
+					txtEnde.setEnabled(true);
+					u1.setEnabled(true);
+					u2.setEnabled(true);
+					fahrer.setEnabled(true);
+					monat.setEnabled(true);
+				}
+			}
+		});
+		
 	}
 
 	
@@ -173,7 +209,7 @@ public class MainFrame extends JFrame {
 		String start = txtStart.getText();
 		String ende = txtEnde.getText();
 		
-		if (start.isEmpty() || ende.isEmpty())
+		if (start.isEmpty() || ende.isEmpty() && privat == true)
 		{
 			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Orte ein.");
 			return;			
@@ -182,7 +218,7 @@ public class MainFrame extends JFrame {
 		String su1 = u1.getText();
 		String su2 = u2.getText();
 		
-		if (su1.isEmpty() || su2.isEmpty())
+		if (su1.isEmpty() || su2.isEmpty() && privat == true)
 		{
 			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Uhrzeit ein.");
 			return;			
