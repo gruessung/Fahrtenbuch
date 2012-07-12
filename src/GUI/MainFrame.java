@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -41,9 +42,10 @@ public class MainFrame extends JFrame {
 	
 	public JLabel lblWillkommen = new JLabel();
 	
-	public Boolean privat = false;
+	
 	
 	//Eingabe
+	public Boolean privat = false;
 	public JLabel lblkmStart = new JLabel("KM Start: ");
 	public JLabel lblkmEnde = new JLabel("KM Ende: ");
 	public JLabel lblStart = new JLabel("Startort: ");
@@ -65,12 +67,18 @@ public class MainFrame extends JFrame {
 	public JTextField u1 = new JTextField();
 	public JTextField u2 = new JTextField();
 	
+	
+	String dbKmStart = null;
+	
+	//Fahrerverwaltung
+	public JTable fahrertabelle = new JTable();
+	
 	/**
 	 * @param args
 	 */
 	public MainFrame()
 	{
-		
+		setLocation(200,200);
 		setVisible(true);
 		setTitle("Fahrtenbuch");
 		createWidgets();
@@ -101,6 +109,8 @@ public class MainFrame extends JFrame {
 		
 		lblWillkommen.setText("Willkommen im Fahrtenbuch.");
 		
+		
+		
 		try {
 			if (db.getCn().isClosed())
 			{
@@ -116,11 +126,22 @@ public class MainFrame extends JFrame {
 				fahrerVector.add(db.getRs().getString("name"));
 			}
 			
+			db.setRs(db.getSt().executeQuery("SELECT kmende FROM fahrten ORDER BY id limit 1 offset 1"));
+			dbKmStart = db.getRs().getString("kmende");
+			
+			if (dbKmStart.isEmpty() == false)
+			{
+				txtkmStart.setText(dbKmStart);
+				txtkmStart.setEditable(false);
+			}
+			
+			
 			DefaultComboBoxModel<String> fahrerModel = new DefaultComboBoxModel<String>(fahrerVector);
 			fahrer.setModel(fahrerModel);
 			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			JOptionPane.showMessageDialog(this, "Kann Datenbank nicht öffnen!");
+			System.exit(-1);
 			e.printStackTrace();
 		}
 		
@@ -147,7 +168,6 @@ public class MainFrame extends JFrame {
 					u1.setEnabled(false);
 					u2.setEnabled(false);
 					fahrer.setEnabled(false);
-					monat.setEnabled(false);
 				}
 			}
 		});
@@ -164,7 +184,6 @@ public class MainFrame extends JFrame {
 					u1.setEnabled(true);
 					u2.setEnabled(true);
 					fahrer.setEnabled(true);
-					monat.setEnabled(true);
 				}
 			}
 		});
@@ -209,7 +228,7 @@ public class MainFrame extends JFrame {
 		String start = txtStart.getText();
 		String ende = txtEnde.getText();
 		
-		if (start.isEmpty() || ende.isEmpty() && privat == true)
+		if ((start.isEmpty() || ende.isEmpty()) && privat == false)
 		{
 			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Orte ein.");
 			return;			
@@ -218,13 +237,46 @@ public class MainFrame extends JFrame {
 		String su1 = u1.getText();
 		String su2 = u2.getText();
 		
-		if (su1.isEmpty() || su2.isEmpty() && privat == true)
+		if ((su1.isEmpty() || su2.isEmpty()) && privat == false)
 		{
-			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Uhrzeit ein.");
+			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Uhrzeit/Datum ein.");
 			return;			
 		}		
-		System.out.println(monat.getSelectedItem());
+
+		String sFahrer = fahrer.getSelectedItem().toString();
+		if (sFahrer.isEmpty() && privat == false)
+		{
+			JOptionPane.showMessageDialog(this, "Bitte wählen Sie den Fahrer aus.");
+			return;						
+		}
 		
+		String sMonat = monat.getSelectedItem().toString();
+		if (sMonat.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, "Bitte wählen Sie den Monat aus.");
+			return;						
+		}
+		String prv = "0";
+		if (privat == true)
+		{
+			prv = "1";
+		}
+		
+		
+		String sql = "";
+		
+		sql = "INSERT INTO fahrten (kmstart, kmende, start, ende, zeitstart, zeitende, privat, monat, fahrer)";
+		sql += " VALUES ('"+kmstart+"','"+kmende+"','"+start+"','"+ende+"','"+su1+"','"+su2+"','"+prv+"','"+sMonat+"','"+sFahrer+"');";
+		try {
+			if (db.getCn().isClosed())
+			{
+				db.setupConnection();
+			}
+			db.getSt().executeUpdate(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(sql);
+		}
 	}
 	
 	
