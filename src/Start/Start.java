@@ -1,7 +1,6 @@
 package Start;
 
 import GUI.MainFrame;
-import Klassen.Datenbank;
 
 public class Start {
 

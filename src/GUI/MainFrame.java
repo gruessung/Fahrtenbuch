@@ -3,16 +3,18 @@ package GUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
@@ -21,6 +23,11 @@ import javax.swing.JTextField;
 import Klassen.Datenbank;
 
 public class MainFrame extends JFrame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6524428346900526062L;
 
 	public Datenbank db = new Datenbank("fahrtenbuch.db", "", "");
 	
@@ -31,6 +38,8 @@ public class MainFrame extends JFrame {
 	JPanel panelAusgabe = new JPanel();
 	
 	JLabel lblWillkommen = new JLabel();
+	
+	Boolean privat = false;
 	
 	//Eingabe
 	JLabel lblkmStart = new JLabel("KM Start: ");
@@ -44,13 +53,13 @@ public class MainFrame extends JFrame {
 	JTextField txtStart = new JTextField(20);
 	JTextField txtEnde = new JTextField(20);
 	JButton btnOK = new JButton("Speichern");
-	JComboBox fahrer = new JComboBox();
+	JComboBox<String> fahrer = new JComboBox<String>();
 	JLabel lbluhrzeit1 = new JLabel("Startzeit:");
 	JLabel lbluhrzeit2 = new JLabel("Endzeit:");
 	JLabel lblmonat = new JLabel("Monat:");
 	JLabel lblfahrer = new JLabel("Fahrer:");
-	JComboBox monat = new JComboBox();
-	Vector<String> monate = new Vector();
+	JComboBox<String> monat = new JComboBox<String>();
+	Vector<String> monate = new Vector<String>();
 	JTextField u1 = new JTextField();
 	JTextField u2 = new JTextField();
 	
@@ -85,7 +94,7 @@ public class MainFrame extends JFrame {
 		monate.add("November");
 		monate.add("Dezember");
 		
-		DefaultComboBoxModel monatModel = new DefaultComboBoxModel(monate);
+		DefaultComboBoxModel<String> monatModel = new DefaultComboBoxModel<String>(monate);
 		monat.setModel(monatModel);
 		
 		lblWillkommen.setText("Willkommen im Fahrtenbuch.");
@@ -105,7 +114,7 @@ public class MainFrame extends JFrame {
 				fahrerVector.add(db.getRs().getString("name"));
 			}
 			
-			DefaultComboBoxModel fahrerModel = new DefaultComboBoxModel(fahrerVector);
+			DefaultComboBoxModel<String> fahrerModel = new DefaultComboBoxModel<String>(fahrerVector);
 			fahrer.setModel(fahrerModel);
 			
 		} catch (SQLException e) {
@@ -113,8 +122,76 @@ public class MainFrame extends JFrame {
 			e.printStackTrace();
 		}
 		
+		
+		
+		btnOK.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Speichern();
+				
+			}
+		});
+		
 	}
 
+	
+	private void Speichern() {
+		if (rbBeruf.isSelected() && rbPrivat.isSelected() == false)
+		{
+			privat = false;
+		}
+		else if (rbBeruf.isSelected() == false && rbPrivat.isSelected())
+		{
+			privat = true;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(this, "Wählen Sie bitte nur eine der Optionen privat oder geschäftlich.");
+			return;
+		}
+		
+		String kmstart = txtkmStart.getText();
+		String kmende = txtkmEnde.getText();
+		
+		if (kmstart.isEmpty() || kmende.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Kilometer ein.");
+			return;			
+		}
+		try
+		{
+			 Double.parseDouble(kmstart);
+			 Double.parseDouble(kmende);
+		}
+		catch (Exception ex)
+		{
+			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Kilometer in Zahlen ein.");
+			return;	
+		}
+		
+		String start = txtStart.getText();
+		String ende = txtEnde.getText();
+		
+		if (start.isEmpty() || ende.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Orte ein.");
+			return;			
+		}
+
+		String su1 = u1.getText();
+		String su2 = u2.getText();
+		
+		if (su1.isEmpty() || su2.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, "Bitte tragen Sie die Uhrzeit ein.");
+			return;			
+		}		
+		System.out.println(monat.getSelectedItem());
+		
+	}
+	
+	
 	private void addWidgets() {
 		
 		//Panel Willkommen
@@ -142,7 +219,7 @@ public class MainFrame extends JFrame {
 		panelEingabe.add(lblmonat);
 		panelEingabe.add(monat);
 		
-		
+		panelEingabe.add(Box.createVerticalGlue());
 		panelEingabe.add(btnOK);
 		panelEingabe.add(Box.createVerticalGlue());
 		panelEingabe.add(Box.createVerticalGlue());
@@ -156,6 +233,10 @@ public class MainFrame extends JFrame {
 		//ContentPane
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.CENTER, tb);
+		
+		
+		
+		
 		
 	}
 
