@@ -9,13 +9,41 @@ public class Datenbank {
 	private ResultSet rs = null;
 	private ResultSet rs2 = null;
 	
+	private String db = "";
+	private String user = "";
+	private String pw = "";
+	
 	
 	public Datenbank(String datenbank, String User, String Password)
+	{
+		this.db = datenbank;
+		this.user = User;
+		this.pw = Password;
+		setupConnection();
+	}
+
+	public Connection getCn() {
+		return cn;
+	}
+
+	public void setCn(Connection cn) {
+		this.cn = cn;
+	}
+
+	public Statement getSt() {
+		return st;
+	}
+
+	public void setSt(Statement st) {
+		this.st = st;
+	}
+
+	public void setupConnection()
 	{
 		try
 	    {
 	        Class.forName( "org.sqlite.JDBC" );
-	        this.cn = DriverManager.getConnection( "jdbc:sqlite:" + datenbank, User, Password);
+	        this.cn = DriverManager.getConnection( "jdbc:sqlite:" + this.db, this.user, this.pw);
 	        this.st = cn.createStatement();
 	        System.out.println("DB Connection established...");
 	    }
@@ -24,7 +52,6 @@ public class Datenbank {
 	        e.printStackTrace();
 	    }
 	}
-
 
 	public ResultSet getRs() {
 		return rs;
