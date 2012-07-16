@@ -3,5 +3,11 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="sqlitejdbc-v056.jar"/>
+	<classpathentry kind="lib" path="xmlworker-1.1.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="xmlworker-1.1.4-sources.jar"/>
+	<classpathentry kind="lib" path="xmlworker-1.1.4.jar"/>
+	<classpathentry kind="lib" path="itextpdf-5.3.0-javadoc.jar"/>
+	<classpathentry kind="lib" path="itextpdf-5.3.0-sources.jar"/>
+	<classpathentry kind="lib" path="itextpdf-5.3.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

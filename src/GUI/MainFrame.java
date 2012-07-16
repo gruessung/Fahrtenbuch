@@ -5,7 +5,17 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.Format;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -28,6 +38,11 @@ import javax.swing.table.DefaultTableModel;
 
 import Klassen.Datenbank;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.html.simpleparser.HTMLWorker;
+import com.itextpdf.text.pdf.PdfWriter;
+
 public class MainFrame extends JFrame {
 
 	/**
@@ -44,7 +59,7 @@ public class MainFrame extends JFrame {
 	public JPanel panelAusgabe = new JPanel();
 	
 	public JLabel lblWillkommen = new JLabel();
-	
+
 	
 	
 	
@@ -73,6 +88,7 @@ public class MainFrame extends JFrame {
 	
 	
 	
+	
 	String dbKmStart = null;
 	
 	//Fahrerverwaltung
@@ -86,6 +102,7 @@ public class MainFrame extends JFrame {
 	public JTable ausgabetabelle = new JTable();
 	public JComboBox<String> monatsauswahl = new JComboBox<String>();
 	public JLabel ausgabe = new JLabel();
+	public JButton drucken = new JButton("PDF Rechnung erstellen");
 	
 	
 	
@@ -269,6 +286,91 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println(arg0.paramString());
 				AusgabeTabelle();
+			}
+		});
+		
+		drucken.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					com.itextpdf.text.Document document = new com.itextpdf.text.Document(PageSize.A4);
+					PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream("testpdf.pdf"));
+					document.open();
+
+					HTMLWorker htmlWorker = new HTMLWorker(document);
+					//Datein in den HTML Quelltext einfügen
+					String name = JOptionPane.showInputDialog("Geben Sie Ihren Vor- und Nachnamen ein:");
+					String strasse = JOptionPane.showInputDialog("Geben Sie Ihre Straße ein:");
+					String plz = JOptionPane.showInputDialog("Geben Sie Ihre PLZ ein:");
+					String ort = JOptionPane.showInputDialog("Geben Sie Ihren Wohnort ein:");
+					
+					String strFA = JOptionPane.showInputDialog("Geben Sie die Straße Ihres Finanzamtes ein:");
+					String plzFA = JOptionPane.showInputDialog("Geben Sie die PLZ Ihres Finanzamtes ein:");
+					String ortFA = JOptionPane.showInputDialog("Geben Sie den Ort Ihres Finanzamtes ein:");
+					
+					String pauschale = JOptionPane.showInputDialog("Wieviel cent gibt es pro KM?:","30");
+					
+					Calendar calendar = new GregorianCalendar();
+					Format format = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+					Date date = calendar.getTime();
+					
+					String datum = date.toString();
+					Integer privat = 0;
+					Integer beruf = 0;
+					
+					String text = "";
+					
+					String ausgabesql = "SELECT * FROM fahrten WHERE monat IN('"+monatsauswahl.getSelectedItem().toString()+"');";
+					System.out.println(ausgabesql);
+					try
+					{
+						if (db.getCn().isClosed())
+						{
+							db.setupConnection();
+						}
+						
+						db.setRs(db.getSt().executeQuery(ausgabesql));
+
+						
+						while (db.getRs().next())
+						{
+							if (db.getRs().getString("privat").contains("1"))
+							{
+								privat += Integer.parseInt(db.getRs().getString("kmende")) - Integer.parseInt(db.getRs().getString("kmstart"));
+							}
+							else
+							{
+								beruf += Integer.parseInt(db.getRs().getString("kmende")) - Integer.parseInt(db.getRs().getString("kmstart"));
+							}	
+						}
+
+						
+					}
+					catch (SQLException ex)
+					{
+						System.out.println(ex);
+					}
+					
+					String str = "<html>"+name+"<br>"+strasse+"<br>"+plz+" "+ort+"<br><br><br>Finanzamt "+ortFA+"<br>"+strFA+"<br>"+plzFA+" "+ortFA+"<br><br><b>"+datum+" - &Uuml;bermittlung der Fahrdaten zur steuerlichen Abrechnung</b><br><br><table border=1><tr><td>Gesamte Kilometer</td><td>davon privat</td><td>davon gesch&auml;ftlich</td><td>Pauschale ct / km</td><td>Gesamtkosten</td></tr>";
+					str += "<tr><td>"+(privat + beruf)+"</td><td>"+privat+"</td><td>"+beruf+"</td><td>"+pauschale+"</td><td>"+(( (beruf) * Integer.parseInt(pauschale)) / 100 )+" €</td></tr>";
+					str += "</table><br><br>Mit freundlichen Gr&uuml;&szlig;en<br><br>_________________________________<br>"+name+"</html>";
+					System.out.println(( (beruf) * Integer.parseInt(pauschale)) / 100);
+					
+					
+					
+					
+					htmlWorker.parse(new StringReader(str));
+					document.close();
+					} catch(DocumentException e) {
+					e.printStackTrace();
+					} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+					} catch (IOException e) {
+					e.printStackTrace();
+					}
+				
 			}
 		});
 		
@@ -500,11 +602,14 @@ public class MainFrame extends JFrame {
 		
 		//Ausgabe
 		scrollOut.getViewport().add(ausgabetabelle);
-
+		JPanel unten = new JPanel();
+		unten.setLayout(new GridLayout(0,1));
+		unten.add(ausgabe);
+		unten.add(drucken);
 		panelAusgabe.setLayout(new BorderLayout());
 		panelAusgabe.add(BorderLayout.PAGE_START, monatsauswahl);
 		panelAusgabe.add(BorderLayout.CENTER, scrollOut);
-		panelAusgabe.add(BorderLayout.PAGE_END, ausgabe);
+		panelAusgabe.add(BorderLayout.PAGE_END, unten);
 		
 		
 		
