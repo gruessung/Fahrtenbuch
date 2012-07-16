@@ -85,7 +85,7 @@ public class MainFrame extends JFrame {
 	public JScrollPane scrollOut = new JScrollPane();
 	public JTable ausgabetabelle = new JTable();
 	public JComboBox<String> monatsauswahl = new JComboBox<String>();
-	public JButton refresh = new JButton("Aktualisieren");
+	public JLabel ausgabe = new JLabel();
 	
 	
 	
@@ -143,7 +143,7 @@ public class MainFrame extends JFrame {
 				fahrerVector.add(db.getRs().getString("name"));
 			}
 			
-			db.setRs(db.getSt().executeQuery("SELECT kmende FROM fahrten ORDER BY id limit 1 offset 1"));
+			db.setRs(db.getSt().executeQuery("SELECT kmende FROM fahrten ORDER BY id DESC LIMIT 1;"));
 			if (db.getRs().next())
 				dbKmStart = db.getRs().getString("kmende");
 			
@@ -282,6 +282,7 @@ public class MainFrame extends JFrame {
 		Integer privat = 0;
 		Integer beruf = 0;
 		String text = "";
+		Integer kmberuf = 0;
 		
 		String ausgabesql = "SELECT * FROM fahrten WHERE monat IN('"+monatsauswahl.getSelectedItem().toString()+"');";
 		System.out.println(ausgabesql);
@@ -325,9 +326,12 @@ public class MainFrame extends JFrame {
 				{
 					data.add("geschäftlich");
 					beruf++;
+					kmberuf += (Integer.parseInt(db.getRs().getString("kmende")) - Integer.parseInt(db.getRs().getString("kmstart")) );
 				}
 				
 				tm.addRow(data);
+				
+				
 			}
 
 			
@@ -337,8 +341,16 @@ public class MainFrame extends JFrame {
 			System.out.println(ex);
 		}
 		
-//		if (privat > beruf)
+		if (privat > beruf)
+		{
+			text = "Der private Anteil überwiegt. Es können " + kmberuf + " km abgerechnet werden für geschäftliche Fahrten.";
+		}
+		else
+		{
+			text = "Der geschäftliche Anteil überwiegt. Es können " + kmberuf + " km abgerechnet werden für geschäftliche Fahrten.";
+		}
 		
+		ausgabe.setText(text);
 	}
 
 	private void Speichern() {
@@ -448,6 +460,7 @@ public class MainFrame extends JFrame {
 		panelWillkommen.add(BorderLayout.PAGE_START, lblWillkommen);
 		
 		//Panel Eingabe
+		JPanel pnTmp = new JPanel();
 		panelEingabe.setLayout(new GridLayout(0,2));
 		panelEingabe.add(lblkmStart);
 		panelEingabe.add(txtkmStart);
@@ -461,8 +474,12 @@ public class MainFrame extends JFrame {
 		panelEingabe.add(u1);
 		panelEingabe.add(lbluhrzeit2);
 		panelEingabe.add(u2);
-		panelEingabe.add(rbPrivat);
-		panelEingabe.add(rbBeruf);
+		pnTmp.setLayout(new GridLayout(0,2));
+		pnTmp.add(rbPrivat);
+		pnTmp.add(rbBeruf);
+		
+		panelEingabe.add(Box.createVerticalGlue());
+		panelEingabe.add(pnTmp);
 		panelEingabe.add(lblfahrer);
 		panelEingabe.add(fahrer);
 		panelEingabe.add(lblmonat);
@@ -487,6 +504,7 @@ public class MainFrame extends JFrame {
 		panelAusgabe.setLayout(new BorderLayout());
 		panelAusgabe.add(BorderLayout.PAGE_START, monatsauswahl);
 		panelAusgabe.add(BorderLayout.CENTER, scrollOut);
+		panelAusgabe.add(BorderLayout.PAGE_END, ausgabe);
 		
 		
 		
