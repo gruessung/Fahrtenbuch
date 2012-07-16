@@ -17,11 +17,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.DefaultTableModel;
 
 import Klassen.Datenbank;
 
@@ -41,6 +44,7 @@ public class MainFrame extends JFrame {
 	public JPanel panelAusgabe = new JPanel();
 	
 	public JLabel lblWillkommen = new JLabel();
+	
 	
 	
 	
@@ -68,16 +72,29 @@ public class MainFrame extends JFrame {
 	public JTextField u2 = new JTextField();
 	
 	
+	
 	String dbKmStart = null;
 	
 	//Fahrerverwaltung
 	public JTable fahrertabelle = new JTable();
+	public JButton fahrerAdd = new JButton("Hinzufügen");
+	public JButton fahrerDel = new JButton("Löschen");
+	public JScrollPane scroll = new JScrollPane();
+	
+	//Ausgabe
+	public JScrollPane scrollOut = new JScrollPane();
+	public JTable ausgabetabelle = new JTable();
+	public JComboBox<String> monatsauswahl = new JComboBox<String>();
+	public JButton refresh = new JButton("Aktualisieren");
+	
+	
 	
 	/**
 	 * @param args
 	 */
 	public MainFrame()
 	{
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setLocation(200,200);
 		setVisible(true);
 		setTitle("Fahrtenbuch");
@@ -127,9 +144,10 @@ public class MainFrame extends JFrame {
 			}
 			
 			db.setRs(db.getSt().executeQuery("SELECT kmende FROM fahrten ORDER BY id limit 1 offset 1"));
-			dbKmStart = db.getRs().getString("kmende");
+			if (db.getRs().next())
+				dbKmStart = db.getRs().getString("kmende");
 			
-			if (dbKmStart.isEmpty() == false)
+			if (dbKmStart != null)
 			{
 				txtkmStart.setText(dbKmStart);
 				txtkmStart.setEditable(false);
@@ -141,8 +159,9 @@ public class MainFrame extends JFrame {
 			
 		} catch (SQLException e) {
 			JOptionPane.showMessageDialog(this, "Kann Datenbank nicht öffnen!");
-			System.exit(-1);
 			e.printStackTrace();
+			System.exit(-1);
+			
 		}
 		
 		
@@ -188,9 +207,140 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		
+		
+		//Fahrerverwaltung
+		fahrerRefresh();
+		
+		fahrerAdd.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String neuerFahrer = null;
+				String sql = null;
+				try
+				{
+					neuerFahrer = JOptionPane.showInputDialog("Geben Sie den Namen ein.");
+					if (db.getCn().isClosed())
+						db.setupConnection();
+					
+					sql = "INSERT INTO fahrer (name) VALUES ('"+neuerFahrer+"');";
+					db.getSt().executeUpdate(sql);
+					fahrerRefresh();
+				}
+				catch (SQLException ex)
+				{
+					System.out.println(ex);
+				}
+				catch (Exception ex)
+				{
+					System.out.println("Abbruch");
+				}
+			}
+		});
+		
+		fahrerDel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Integer delIndex = fahrertabelle.getSelectedRow();
+				String delName = fahrertabelle.getValueAt(delIndex, 0).toString();
+				String sql = "DELETE FROM fahrer WHERE name IN('"+delName+"');";
+				try {
+					if (db.getCn().isClosed())
+						db.setupConnection();
+					db.getSt().executeUpdate(sql);
+					fahrerRefresh();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		});
+		
+		
+		//Ausgabe
+		DefaultComboBoxModel<String> monatsauswahlModel = new DefaultComboBoxModel<String>(monate);
+		monatsauswahl.setModel(monatsauswahlModel);
+		AusgabeTabelle();
+		
+		monatsauswahl.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println(arg0.paramString());
+				AusgabeTabelle();
+			}
+		});
+		
 	}
 
-	
+	 
+	private void AusgabeTabelle() {
+		
+		ausgabetabelle.removeAll();
+
+		Integer privat = 0;
+		Integer beruf = 0;
+		String text = "";
+		
+		String ausgabesql = "SELECT * FROM fahrten WHERE monat IN('"+monatsauswahl.getSelectedItem().toString()+"');";
+		System.out.println(ausgabesql);
+		try
+		{
+			if (db.getCn().isClosed())
+			{
+				db.setupConnection();
+			}
+			
+			db.setRs(db.getSt().executeQuery(ausgabesql));
+
+			DefaultTableModel tm = new DefaultTableModel();
+			ausgabetabelle.setModel(tm);		
+			
+			tm.addColumn("KM Start");
+			tm.addColumn("KM Ende");
+			tm.addColumn("Startort");
+			tm.addColumn("Zielort");
+			tm.addColumn("Abfahrt");
+			tm.addColumn("Ankunft");
+			tm.addColumn("Fahrer");
+			tm.addColumn("Privat/Geschäftlich");
+			
+			while (db.getRs().next())
+			{
+				Vector<String> data = new Vector<String>();
+				data.add(db.getRs().getString("kmstart"));
+				data.add(db.getRs().getString("kmende"));
+				data.add(db.getRs().getString("start"));
+				data.add(db.getRs().getString("ende"));
+				data.add(db.getRs().getString("zeitstart"));
+				data.add(db.getRs().getString("zeitende"));
+				data.add(db.getRs().getString("fahrer"));
+				if (db.getRs().getString("privat").contains("1"))
+				{
+					data.add("privat");
+					privat++;
+				}
+				else
+				{
+					data.add("geschäftlich");
+					beruf++;
+				}
+				
+				tm.addRow(data);
+			}
+
+			
+		}
+		catch (SQLException ex)
+		{
+			System.out.println(ex);
+		}
+		
+//		if (privat > beruf)
+		
+	}
+
 	private void Speichern() {
 		if (rbBeruf.isSelected() && rbPrivat.isSelected() == false)
 		{
@@ -244,7 +394,7 @@ public class MainFrame extends JFrame {
 		}		
 
 		String sFahrer = fahrer.getSelectedItem().toString();
-		if (sFahrer.isEmpty() && privat == false)
+		if ((sFahrer.isEmpty() || sFahrer.trim() == "") && privat == false)
 		{
 			JOptionPane.showMessageDialog(this, "Bitte wählen Sie den Fahrer aus.");
 			return;						
@@ -273,6 +423,17 @@ public class MainFrame extends JFrame {
 				db.setupConnection();
 			}
 			db.getSt().executeUpdate(sql);
+			JOptionPane.showMessageDialog(this, "Daten wurden erfasst.");
+			
+			txtkmStart.setText(kmende);
+			txtkmEnde.setText("");
+			txtStart.setText("");
+			txtEnde.setText("");
+			u1.setText("");
+			u2.setText("");
+			rbBeruf.setSelected(false);
+			rbPrivat.setSelected(false);
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println(sql);
@@ -312,6 +473,23 @@ public class MainFrame extends JFrame {
 		panelEingabe.add(Box.createVerticalGlue());
 		panelEingabe.add(Box.createVerticalGlue());
 		
+		
+		//Fahrerverwaltung
+		panelFahrer.setLayout(new BorderLayout());
+		scroll.getViewport().add(fahrertabelle);
+		panelFahrer.add(BorderLayout.CENTER, scroll);
+		panelFahrer.add(BorderLayout.PAGE_START, fahrerAdd);
+		panelFahrer.add(BorderLayout.PAGE_END, fahrerDel);
+		
+		//Ausgabe
+		scrollOut.getViewport().add(ausgabetabelle);
+
+		panelAusgabe.setLayout(new BorderLayout());
+		panelAusgabe.add(BorderLayout.PAGE_START, monatsauswahl);
+		panelAusgabe.add(BorderLayout.CENTER, scrollOut);
+		
+		
+		
 		//TabbedPane
 		tb.addTab("Willkommen", panelWillkommen);
 		tb.addTab("Eingabe", panelEingabe);
@@ -320,14 +498,65 @@ public class MainFrame extends JFrame {
 		
 		//ContentPane
 		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(BorderLayout.CENTER, tb);
-		
-		
-		
-		
-		
+		getContentPane().add(BorderLayout.CENTER, tb);	
 	}
 
-	
+	private void fahrerRefresh()
+	{
+		
+		try {
+			db.setRs(db.getSt().executeQuery("SELECT * FROM fahrer"));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		DefaultTableModel tm = new DefaultTableModel();
+		
+		fahrertabelle.setModel(tm);		
+		
+		tm.addColumn("Name");
+		try {
+			while (db.getRs().next())
+			{
+				Vector<String> data = new Vector<String>();
+				data.add(db.getRs().getString("name"));
+				tm.addRow(data);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			if (db.getCn().isClosed())
+			{
+				db.setupConnection();
+			}
+			
+			db.setRs(db.getSt().executeQuery("SELECT * FROM fahrer"));
+			
+			Vector<String> fahrerVector = new Vector<String>();
+			
+			while (db.getRs().next())
+			{
+				fahrerVector.add(db.getRs().getString("name"));
+			}
+					
+			
+			DefaultComboBoxModel<String> fahrerModel = new DefaultComboBoxModel<String>(fahrerVector);
+			fahrer.setModel(fahrerModel);
+			
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(this, "Kann Datenbank nicht öffnen!");
+			e.printStackTrace();
+			System.exit(-1);
+			
+		}
+		
+
+
+	}
 
 }
