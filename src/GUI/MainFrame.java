@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -290,11 +291,12 @@ public class MainFrame extends JFrame {
 		});
 		
 		drucken.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					com.itextpdf.text.Document document = new com.itextpdf.text.Document(PageSize.A4);
-					PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream("testpdf.pdf"));
+					PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(monatsauswahl.getSelectedItem().toString()+".pdf"));
 					document.open();
 
 					HTMLWorker htmlWorker = new HTMLWorker(document);
@@ -351,16 +353,26 @@ public class MainFrame extends JFrame {
 						System.out.println(ex);
 					}
 					
+					double test = (beruf * Integer.parseInt(pauschale));
+					test = test / 100;
+					
 					String str = "<html>"+name+"<br>"+strasse+"<br>"+plz+" "+ort+"<br><br><br>Finanzamt "+ortFA+"<br>"+strFA+"<br>"+plzFA+" "+ortFA+"<br><br><b>"+datum+" - &Uuml;bermittlung der Fahrdaten zur steuerlichen Abrechnung</b><br><br><table border=1><tr><td>Gesamte Kilometer</td><td>davon privat</td><td>davon gesch&auml;ftlich</td><td>Pauschale ct / km</td><td>Gesamtkosten</td></tr>";
-					str += "<tr><td>"+(privat + beruf)+"</td><td>"+privat+"</td><td>"+beruf+"</td><td>"+pauschale+"</td><td>"+(( (beruf) * Integer.parseInt(pauschale)) / 100 )+" €</td></tr>";
+					str += "<tr><td>"+(privat + beruf)+"</td><td>"+privat+"</td><td>"+beruf+"</td><td>"+pauschale+"</td><td>"+test+" €</td></tr>";
 					str += "</table><br><br>Mit freundlichen Gr&uuml;&szlig;en<br><br>_________________________________<br>"+name+"</html>";
-					System.out.println(( (beruf) * Integer.parseInt(pauschale)) / 100);
+
+					System.out.println(test);
+					
+					
 					
 					
 					
 					
 					htmlWorker.parse(new StringReader(str));
 					document.close();
+					
+					File t = new File (monatsauswahl.getSelectedItem().toString()+".pdf");
+					JOptionPane.showMessageDialog(null,"Die Datei wurde unter " + t.getAbsolutePath().toString() +" gespeichert." );
+					
 					} catch(DocumentException e) {
 					e.printStackTrace();
 					} catch (FileNotFoundException e) {
@@ -370,6 +382,8 @@ public class MainFrame extends JFrame {
 					} catch (IOException e) {
 					e.printStackTrace();
 					}
+				
+				
 				
 			}
 		});
