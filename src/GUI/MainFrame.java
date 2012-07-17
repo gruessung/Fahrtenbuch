@@ -20,6 +20,7 @@ import java.util.GregorianCalendar;
 import java.util.Vector;
 
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -43,6 +44,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.html.simpleparser.HTMLWorker;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 
 /**
@@ -96,6 +98,8 @@ public class MainFrame extends JFrame {
 	public JTextField u1 = new JTextField();
 	public JTextField u2 = new JTextField();
 	String dbKmStart = null;
+	JPanel pnTmp = new JPanel();
+
 	
 	//Fahrerverwaltung
 	public JTable fahrertabelle = new JTable();
@@ -386,7 +390,7 @@ public class MainFrame extends JFrame {
 					double test = (beruf * Integer.parseInt(pauschale));
 					test = test / 100;
 					
-					String str = "<html>"+name+"<br>"+strasse+"<br>"+plz+" "+ort+"<br><br><br>Finanzamt "+ortFA+"<br>"+strFA+"<br>"+plzFA+" "+ortFA+"<br><br><b>"+datum+" - &Uuml;bermittlung der Fahrdaten zur steuerlichen Abrechnung</b><br><br><table border=1><tr><td>Gesamte Kilometer</td><td>davon privat</td><td>davon gesch&auml;ftlich</td><td>Pauschale ct / km</td><td>Gesamtkosten</td></tr>";
+					String str = "<html>"+name+"<br>"+strasse+"<br>"+plz+" "+ort+"<br><br><br>Finanzamt "+ortFA+"<br>"+strFA+"<br>"+plzFA+" "+ortFA+"<br><br><b>"+datum+" - &Uuml;bermittlung der Fahrdaten zur steuerlichen Abrechnung für den Monat "+monatsauswahl.getSelectedItem().toString()+"</b><br><br><table border=1><tr><td>Gesamte Kilometer</td><td>davon privat</td><td>davon gesch&auml;ftlich</td><td>Pauschale ct / km</td><td>Gesamtkosten</td></tr>";
 					str += "<tr><td>"+(privat + beruf)+"</td><td>"+privat+"</td><td>"+beruf+"</td><td>"+pauschale+"</td><td>"+test+" €</td></tr>";
 					str += "</table><br><br>Mit freundlichen Gr&uuml;&szlig;en<br><br>_________________________________<br>"+name+"</html>";
 
@@ -520,7 +524,7 @@ public class MainFrame extends JFrame {
 		}
 		else
 		{
-			JOptionPane.showMessageDialog(this, "Wählen Sie bitte nur eine der Optionen privat oder geschäftlich.");
+			JOptionPane.showMessageDialog(this, "Wählen Sie bitte Sie eine Option, ob die Fahrt privat oder geschäftlich war.");
 			return;
 		}
 		
@@ -624,7 +628,7 @@ public class MainFrame extends JFrame {
 		panelWillkommen.add(BorderLayout.PAGE_START, lblWillkommen);
 		
 		//Panel Eingabe
-		JPanel pnTmp = new JPanel();
+		
 		panelEingabe.setLayout(new GridLayout(0,2));
 		panelEingabe.add(lblkmStart);
 		panelEingabe.add(txtkmStart);
