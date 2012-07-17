@@ -44,26 +44,35 @@ import com.itextpdf.text.PageSize;
 import com.itextpdf.text.html.simpleparser.HTMLWorker;
 import com.itextpdf.text.pdf.PdfWriter;
 
+
+/**
+ * GUI Klasse
+ * 
+ * Klasse wird von JFrame abgeleitet
+ * und beinhaltet alle Programmfunktionen.
+ * 
+ * @author alexander, florian, christopher, michael
+ * @since last week
+ * @extends JFrame 
+ */
 public class MainFrame extends JFrame {
 
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = -6524428346900526062L;
 
+	//Datenbank instanziieren
 	public Datenbank db = new Datenbank("fahrtenbuch.db", "", "");
 	
+	//Alle GUI Elemente deklarieren und instanziieren
 	public JTabbedPane tb = new JTabbedPane();
 	public JPanel panelWillkommen = new JPanel();
 	public JPanel panelEingabe = new JPanel();
 	public JPanel panelFahrer = new JPanel();
 	public JPanel panelAusgabe = new JPanel();
 	
+	//Willkommensbildschirm
 	public JLabel lblWillkommen = new JLabel();
 
-	
-	
-	
 	//Eingabe
 	public Boolean privat = false;
 	public JLabel lblkmStart = new JLabel("KM Start: ");
@@ -86,10 +95,6 @@ public class MainFrame extends JFrame {
 	public Vector<String> monate = new Vector<String>();
 	public JTextField u1 = new JTextField();
 	public JTextField u2 = new JTextField();
-	
-	
-	
-	
 	String dbKmStart = null;
 	
 	//Fahrerverwaltung
@@ -108,12 +113,16 @@ public class MainFrame extends JFrame {
 	
 	
 	/**
-	 * @param args
+	 * Konstruktor
+	 * 
+	 * Setzt Eigenschaften des Fensters.
+	 * Ruft die Funktionen zur Erstellung der GUI auf.
 	 */
 	public MainFrame()
 	{
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setLocation(200,200);
+		
 		setVisible(true);
 		setTitle("Fahrtenbuch");
 		createWidgets();
@@ -124,8 +133,12 @@ public class MainFrame extends JFrame {
 		
 	}
 
+	/**
+	 * Funktion erstellt Widgets (GUI Elemente)
+	 */
 	private void createWidgets() {
 		
+		//Monatscombobox füllen und laden
 		monate.add("Januar");
 		monate.add("Februar");
 		monate.add("März");
@@ -143,9 +156,8 @@ public class MainFrame extends JFrame {
 		monat.setModel(monatModel);
 		
 		lblWillkommen.setText("Willkommen im Fahrtenbuch.");
-		
-		
-		
+
+		//Fahrercombobox laden und füllen
 		try {
 			if (db.getCn().isClosed())
 			{
@@ -161,6 +173,7 @@ public class MainFrame extends JFrame {
 				fahrerVector.add(db.getRs().getString("name"));
 			}
 			
+			//Letzte EndKM laden (falls vorhanden) und schreiben
 			db.setRs(db.getSt().executeQuery("SELECT kmende FROM fahrten ORDER BY id DESC LIMIT 1;"));
 			if (db.getRs().next())
 				dbKmStart = db.getRs().getString("kmende");
@@ -183,7 +196,7 @@ public class MainFrame extends JFrame {
 		}
 		
 		
-		
+		//"Speichern" Button
 		btnOK.addActionListener(new ActionListener() {
 			
 			@Override
@@ -193,6 +206,8 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		//Wenn RadioButton "Privat" gedrückt wird
+		//alle Felder, bis auf KMStart/Ende ausgrauen
 		rbPrivat.addChangeListener(new ChangeListener() {
 			
 			@Override
@@ -205,10 +220,15 @@ public class MainFrame extends JFrame {
 					u1.setEnabled(false);
 					u2.setEnabled(false);
 					fahrer.setEnabled(false);
+					txtStart.setText("");
+					txtEnde.setText("");
+					u1.setText("");
+					u2.setText("");
 				}
 			}
 		});
 		
+		//wenn RB Beruf gedrückt wird, alle Felder anzeigen
 		rbBeruf.addChangeListener(new ChangeListener() {
 			
 			@Override
@@ -229,7 +249,8 @@ public class MainFrame extends JFrame {
 		
 		//Fahrerverwaltung
 		fahrerRefresh();
-		
+		//Wenn Fahrer hinzugefügt wird (Button gedrückt)
+		//InputBox zeigen und in DB schreiben
 		fahrerAdd.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -256,6 +277,8 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		//Fahrer löschen-Button
+		//Selektiertes Element aus der DB löschen
 		fahrerDel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -277,10 +300,12 @@ public class MainFrame extends JFrame {
 		
 		
 		//Ausgabe
+		//2. Monatscombobox laden und füllen
 		DefaultComboBoxModel<String> monatsauswahlModel = new DefaultComboBoxModel<String>(monate);
 		monatsauswahl.setModel(monatsauswahlModel);
 		AusgabeTabelle();
 		
+		//Wenn ein Monat gewählt wird -> Ausgabetabelle mit entsprechenden Monat neu laden
 		monatsauswahl.addActionListener(new ActionListener() {
 			
 			@Override
@@ -290,16 +315,20 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		//Drucken Button
+		//PDF
 		drucken.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
+					//iText laden
 					com.itextpdf.text.Document document = new com.itextpdf.text.Document(PageSize.A4);
 					PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(monatsauswahl.getSelectedItem().toString()+".pdf"));
 					document.open();
 
 					HTMLWorker htmlWorker = new HTMLWorker(document);
+					
 					//Datein in den HTML Quelltext einfügen
 					String name = JOptionPane.showInputDialog("Geben Sie Ihren Vor- und Nachnamen ein:");
 					String strasse = JOptionPane.showInputDialog("Geben Sie Ihre Straße ein:");
@@ -322,6 +351,7 @@ public class MainFrame extends JFrame {
 					
 					String text = "";
 					
+					//Fahrten laden und KM auswerten
 					String ausgabesql = "SELECT * FROM fahrten WHERE monat IN('"+monatsauswahl.getSelectedItem().toString()+"');";
 					System.out.println(ausgabesql);
 					try
@@ -362,11 +392,7 @@ public class MainFrame extends JFrame {
 
 					System.out.println(test);
 					
-					
-					
-					
-					
-					
+					//Datei speichern
 					htmlWorker.parse(new StringReader(str));
 					document.close();
 					
@@ -390,7 +416,11 @@ public class MainFrame extends JFrame {
 		
 	}
 
-	 
+	/**
+	 * AusgabeTabelle
+	 * 
+	 * Gibt die Ausgabe aus; nimmt jeweils aktuell gewählten Monat der ComboBox
+	 */
 	private void AusgabeTabelle() {
 		
 		ausgabetabelle.removeAll();
@@ -411,9 +441,11 @@ public class MainFrame extends JFrame {
 			
 			db.setRs(db.getSt().executeQuery(ausgabesql));
 
+			//Leeres Model in Tabelle laden
 			DefaultTableModel tm = new DefaultTableModel();
 			ausgabetabelle.setModel(tm);		
 			
+			//Spalten hinzufügen
 			tm.addColumn("KM Start");
 			tm.addColumn("KM Ende");
 			tm.addColumn("Startort");
@@ -425,6 +457,7 @@ public class MainFrame extends JFrame {
 			
 			while (db.getRs().next())
 			{
+				//Vector mit DB Daten füllen
 				Vector<String> data = new Vector<String>();
 				data.add(db.getRs().getString("kmstart"));
 				data.add(db.getRs().getString("kmende"));
@@ -445,9 +478,8 @@ public class MainFrame extends JFrame {
 					kmberuf += (Integer.parseInt(db.getRs().getString("kmende")) - Integer.parseInt(db.getRs().getString("kmstart")) );
 				}
 				
+				//Zeile schreiben
 				tm.addRow(data);
-				
-				
 			}
 
 			
@@ -457,6 +489,7 @@ public class MainFrame extends JFrame {
 			System.out.println(ex);
 		}
 		
+		//Prüfen, ob private Fahrten mehr als 50%; entsprechenden Ausgabetext generieren
 		if (privat > beruf)
 		{
 			text = "Der private Anteil überwiegt. Es können " + kmberuf + " km abgerechnet werden für geschäftliche Fahrten.";
@@ -465,10 +498,17 @@ public class MainFrame extends JFrame {
 		{
 			text = "Der geschäftliche Anteil überwiegt. Es können " + kmberuf + " km abgerechnet werden für geschäftliche Fahrten.";
 		}
-		
+		//Text ausgeben
 		ausgabe.setText(text);
 	}
 
+	/**
+	 * Speichern
+	 * 
+	 * Prüft, ob alle Eingaben für eine neue Fahrt getätigt wurden
+	 * und speichert den Datensatz in der DB.
+	 * 
+	 */
 	private void Speichern() {
 		if (rbBeruf.isSelected() && rbPrivat.isSelected() == false)
 		{
@@ -553,6 +593,7 @@ public class MainFrame extends JFrame {
 			db.getSt().executeUpdate(sql);
 			JOptionPane.showMessageDialog(this, "Daten wurden erfasst.");
 			
+			//Alle Eingabefelder leeren
 			txtkmStart.setText(kmende);
 			txtkmEnde.setText("");
 			txtStart.setText("");
@@ -569,6 +610,13 @@ public class MainFrame extends JFrame {
 	}
 	
 	
+	/**
+	 * addWidgets
+	 * 
+	 * Alle Panels mit Layouts versehen und
+	 * die Widgets (GUI Elemente) auf den 
+	 * Panels anordnen.
+	 */
 	private void addWidgets() {
 		
 		//Panel Willkommen
@@ -638,35 +686,43 @@ public class MainFrame extends JFrame {
 		getContentPane().add(BorderLayout.CENTER, tb);	
 	}
 
+	/**
+	 * Fahrerverwaltung; Tabelle neu laden
+	 * 
+	 * Die Fahrerverwaltungstabelle neu einlesen
+	 */
 	private void fahrerRefresh()
 	{
 		
 		try {
 			db.setRs(db.getSt().executeQuery("SELECT * FROM fahrer"));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		
-		
+		//Leeres Model
 		DefaultTableModel tm = new DefaultTableModel();
 		
 		fahrertabelle.setModel(tm);		
 		
+		//Spalte zufügen
 		tm.addColumn("Name");
 		try {
 			while (db.getRs().next())
 			{
+				//Vector füllen
+				//und Zeile zufügen
 				Vector<String> data = new Vector<String>();
 				data.add(db.getRs().getString("name"));
 				tm.addRow(data);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
+			//Auf dem Panel Eingabe die ComboBox "Fahrerauswahl" 
+			//aktualisieren
 			if (db.getCn().isClosed())
 			{
 				db.setupConnection();
@@ -686,6 +742,8 @@ public class MainFrame extends JFrame {
 			fahrer.setModel(fahrerModel);
 			
 		} catch (SQLException e) {
+			//Fehler beim Laden der Datenbank
+			//Programm beenden
 			JOptionPane.showMessageDialog(this, "Kann Datenbank nicht öffnen!");
 			e.printStackTrace();
 			System.exit(-1);

@@ -5,6 +5,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+/**
+ * Datenbankklasse
+ * 
+ * Verbindet zur DB und verarbeitet Statements
+ * 
+ * @author alexander, florian, christopher, michael
+ * @since last week
+ */
 public class Datenbank {
 
 	private Connection cn = null;
